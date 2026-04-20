@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Escáner Código de Barras</title>
+<title>Acceso CONALEP</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
 <style>
 body {
@@ -14,61 +14,53 @@ body {
     color: white;
 }
 
-#scanner {
+#reader {
     width: 300px;
-    height: 200px;
     margin: auto;
-    border: 3px solid white;
-    border-radius: 10px;
+    border-radius: 15px;
+    overflow: hidden;
 }
 
-#resultado {
+#status {
     margin-top: 20px;
-    font-size: 18px;
+    padding: 15px;
+    border-radius: 10px;
     font-weight: bold;
 }
+.success { background: #00c853; }
+.error { background: #d50000; }
 </style>
 </head>
 
 <body>
 
-<h2>📷 Escanear Credencial</h2>
+<h2>📷 Escaneo de Credencial</h2>
 <p>CONALEP 109</p>
 
-<div id="scanner"></div>
-<div id="resultado">Esperando escaneo...</div>
+<div id="reader"></div>
+<div id="status">Esperando escaneo...</div>
 
 <script>
-Quagga.init({
-    inputStream: {
-        type: "LiveStream",
-        target: document.querySelector('#scanner'),
-        constraints: {
-            facingMode: "environment"
-        }
-    },
-    decoder: {
-        readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
-    }
-}, function(err) {
-    if (err) {
-        console.log(err);
-        return;
-    }
-    Quagga.start();
-});
+function onScanSuccess(decodedText) {
 
-Quagga.onDetected(function(data) {
-    let codigo = data.codeResult.code;
-
-    if (codigo.length >= 6) {
-        document.getElementById("resultado").innerHTML =
-        "✅ Acceso permitido<br>Código: " + codigo;
+    // Ejemplo de validación
+    if (decodedText.length >= 8) {
+        document.getElementById("status").innerText =
+        "✅ Acceso permitido\nMatrícula: " + decodedText;
+        document.getElementById("status").className = "success";
     } else {
-        document.getElementById("resultado").innerHTML =
+        document.getElementById("status").innerText =
         "❌ Acceso denegado";
+        document.getElementById("status").className = "error";
     }
-});
+}
+
+let scanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: 250 }
+);
+
+scanner.render(onScanSuccess);
 </script>
 
 </body>
