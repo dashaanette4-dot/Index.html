@@ -3,72 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control de Acceso CONALEP</title>
+<title>Escáner QR CONALEP</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<!-- Librería confiable -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <style>
-body {
-    margin: 0;
+body{
+    margin:0;
     font-family: Arial;
-    text-align: center;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: white;
+    text-align:center;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
 }
-
-.container {
-    margin-top: 40px;
+h2{ margin-top:30px; }
+#reader{
+    width:300px;
+    margin:auto;
+    border-radius:15px;
+    overflow:hidden;
 }
-
-#reader {
-    width: 280px;
-    margin: auto;
-    border-radius: 15px;
-    overflow: hidden;
+#resultado{
+    margin-top:20px;
+    padding:15px;
+    border-radius:10px;
+    font-weight:bold;
 }
-
-#status {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 10px;
-    font-weight: bold;
-}
-
-.success { background: #00c853; }
-.error { background: #d50000; }
+.ok{ background:#00c853; }
+.bad{ background:#d50000; }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>🎓 CONALEP 109</h2>
-    <p>Escanea tu credencial</p>
+<h2>🎓 CONALEP 109</h2>
+<p>Escanea tu credencial (QR)</p>
 
-    <div id="reader"></div>
-    <div id="status">Esperando escaneo...</div>
-</div>
+<div id="reader"></div>
+<div id="resultado">Esperando escaneo...</div>
 
 <script>
-function onScanSuccess(texto) {
+function iniciarScanner() {
+    const html5QrCode = new Html5Qrcode("reader");
 
-    if (texto.length >= 6) {
-        document.getElementById("status").innerHTML =
-        "✅ Acceso permitido<br>Matrícula: " + texto;
-        document.getElementById("status").className = "success";
-    } else {
-        document.getElementById("status").innerHTML =
-        "❌ Acceso denegado";
-        document.getElementById("status").className = "error";
+    Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+            html5QrCode.start(
+                cameras[0].id,
+                { fps: 10, qrbox: 250 },
+                (decodedText) => {
+                    validar(decodedText);
+                }
+            );
+        }
+    }).catch(err => {
+        document.getElementById("resultado").innerText =
+        "Error al acceder a la cámara";
+    });
+}
+
+function validar(texto){
+    let res = document.getElementById("resultado");
+
+    if(texto.length >= 6){
+        res.innerHTML = "✅ Acceso permitido<br>Matrícula: " + texto;
+        res.className = "ok";
+    }else{
+        res.innerHTML = "❌ Acceso denegado";
+        res.className = "bad";
     }
 }
 
-let scanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: 200 }
-);
-
-scanner.render(onScanSuccess);
+iniciarScanner();
 </script>
 
 </body>
